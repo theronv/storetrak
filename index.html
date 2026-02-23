@@ -651,7 +651,7 @@ function openEditTote(id) {
   document.getElementById('editToteName').value=tote.name||'';
   document.getElementById('editToteShelf').value=tote.shelf||'';
   const sel=document.getElementById('editToteRoom');
-  sel.innerHTML=rooms.map(r=>`<option value="${r.id}">${r.name} (${r.code})</option>`).join('');
+  sel.innerHTML=rooms.map(r=>`<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('');
   sel.value=tote.room_id||'';
   openSheet('editToteOverlay');
 }
@@ -703,25 +703,27 @@ async function deleteRoom(id,name) {
 // ── ADD TOTE ──
 function openToteSheet() {
   if(!rooms.length){switchTab('rooms');toast('Add a room first','error');return;}
-  document.getElementById('toteRoomSel').innerHTML=rooms.map(r=>`<option value="${r.id}">${r.name} (${r.code})</option>`).join('');
+  document.getElementById('toteRoomSel').innerHTML=rooms.map(r=>`<option value="${r.id}">${esc(r.name)} (${esc(r.code)})</option>`).join('');
   if(roomFilter!=='all') document.getElementById('toteRoomSel').value=roomFilter;
   document.getElementById('toteNameInput').value='';
   document.getElementById('toteShelfInput').value='';
   updateToteIdPreview(); openSheet('toteOverlay');
 }
+function nextToteNum(rid) {
+  const nums=totes.filter(t=>t.room_id===rid).map(t=>{const m=t.id.match(/-(\d+)$/);return m?parseInt(m[1],10):0;});
+  return String((nums.length?Math.max(...nums):0)+1).padStart(2,'0');
+}
 function updateToteIdPreview() {
   const rid=document.getElementById('toteRoomSel').value;
   const room=rooms.find(r=>r.id===rid);
   if(!room){document.getElementById('toteIdPreview').textContent='Select a room';return;}
-  const n=String(totes.filter(t=>t.room_id===rid).length+1).padStart(2,'0');
-  document.getElementById('toteIdPreview').textContent=`ID: ${room.code}-${n}`;
+  document.getElementById('toteIdPreview').textContent=`ID: ${room.code}-${nextToteNum(rid)}`;
 }
 async function submitTote() {
   const rid=document.getElementById('toteRoomSel').value;
   const room=rooms.find(r=>r.id===rid);
   if(!room){toast('Select a room','error');return;}
-  const n=String(totes.filter(t=>t.room_id===rid).length+1).padStart(2,'0');
-  const toteId=`${room.code}-${n}`;
+  const toteId=`${room.code}-${nextToteNum(rid)}`;
   const name=document.getElementById('toteNameInput').value.trim()||toteId;
   const shelf=document.getElementById('toteShelfInput').value.trim();
   const btn=document.getElementById('toteSubmitBtn');
@@ -854,7 +856,7 @@ function renderRooms() {
         <div class="room-name">${esc(r.name)}</div>
         <div class="room-sub">${toteCount} TOTE${toteCount!==1?'S':''} · ${itemCount} ITEMS</div>
       </div>
-      <button class="btn btn-danger btn-sm" onclick="deleteRoom('${r.id}','${esc(r.name)}')">Delete</button>
+      <button class="btn btn-danger btn-sm" onclick="deleteRoom('${r.id}',this.dataset.name)" data-name="${esc(r.name)}">Delete</button>
     </div>`;
   }).join('');
 }
