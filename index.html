@@ -448,20 +448,20 @@ async function loadAll() {
       sb('GET','totes?select=*&order=id'),
       sb('GET','items?select=*&order=name'),
     ]);
-    setStatus('ok'); hideLoader(); renderAll();
   } catch(e) {
     console.error('Load error:', e);
-    setTimeout(async () => {
-      try {
-        [rooms,totes,items] = await Promise.all([
-          sb('GET','rooms?select=*&order=name'),
-          sb('GET','totes?select=*&order=id'),
-          sb('GET','items?select=*&order=name'),
-        ]);
-        setStatus('ok'); hideLoader(); renderAll();
-      } catch(e) { hideLoader(); setStatus('error'); toast('Could not connect','error'); }
-    }, 2000);
+    await new Promise(r => setTimeout(r, 2000));
+    try {
+      [rooms,totes,items] = await Promise.all([
+        sb('GET','rooms?select=*&order=name'),
+        sb('GET','totes?select=*&order=id'),
+        sb('GET','items?select=*&order=name'),
+      ]);
+    } catch(e) {
+      hideLoader(); setStatus('error'); toast('Could not connect','error'); return;
+    }
   }
+  setStatus('ok'); hideLoader(); renderAll();
 }
 
 // ── NAVIGATION ──
@@ -731,6 +731,11 @@ async function submitTote() {
 }
 
 // ── RENDER ──
+function updateInboxBadge() {
+  const n=items.filter(i=>!i.tote_id).length;
+  const badge=document.getElementById('inboxBadge');
+  if(n>0){badge.textContent=n;badge.style.display='';}else badge.style.display='none';
+}
 function renderAll() { renderInbox(); renderTotes(); renderRooms(); renderStats(); updateInboxBadge(); }
 
 function renderInbox() {
