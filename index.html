@@ -844,9 +844,15 @@ function renderRooms() {
   const grid=document.getElementById('roomsGrid');
   document.getElementById('roomsSub').textContent=`${rooms.length} ROOM${rooms.length!==1?'S':''} · ${totes.length} TOTES`;
   if(!rooms.length){grid.innerHTML=`<div class="empty-state"><div class="ei">🏠</div><h3>No Rooms</h3><p>Add your first room to get started.</p></div>`;return;}
+  // Build a tote→room lookup once so item counting is O(n) not O(n²)
+  const toteRoom={};
+  totes.forEach(t=>{ toteRoom[t.id]=t.room_id; });
+  const itemsPerRoom={};
+  items.forEach(i=>{ if(i.tote_id){ const rid=toteRoom[i.tote_id]; if(rid) itemsPerRoom[rid]=(itemsPerRoom[rid]||0)+1; }});
+
   grid.innerHTML=rooms.map(r=>{
     const toteCount=totes.filter(t=>t.room_id===r.id).length;
-    const itemCount=items.filter(i=>totes.filter(t=>t.room_id===r.id).map(t=>t.id).includes(i.tote_id)).length;
+    const itemCount=itemsPerRoom[r.id]||0;
     return `<div class="room-card">
       <span class="room-code">${esc(r.code)}</span>
       <div class="room-info">
