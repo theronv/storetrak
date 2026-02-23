@@ -747,7 +747,7 @@ function renderInbox() {
     return `<div class="inbox-chip${sel?' selected':''}"
       onpointerdown="inboxChipDown('${i.id}')"
       onpointerup="inboxChipUp('${i.id}')"
-      onpointerleave="if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}">
+      onpointerleave="if(pressTimer){clearTimeout(pressTimer);pressTimer=null;}"
       ontouchstart="inboxChipDown('${i.id}')" ontouchend="inboxChipUp('${i.id}')">
       <span class="chip-dot" style="background:${cat.color}"></span>
       <span>${esc(i.name)}</span>
