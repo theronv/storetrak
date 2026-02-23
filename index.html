@@ -286,7 +286,25 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
       <div class="field"><label>Serial / ID</label><input id="detSerial" placeholder="Optional"></div>
     </div>
     <div class="field"><label>Notes</label><textarea id="detNotes" placeholder="Condition, accessories, where purchased…"></textarea></div>
-    <div class="field"><label>Image URL</label><input id="detImg" placeholder="https://..."></div>
+    <div class="field">
+      <label>Photo</label>
+      <input type="file" id="detImgFile" accept="image/*" capture="environment"
+        style="display:none" onchange="handlePhotoUpload(this)">
+      <div style="display:flex;gap:8px;margin-bottom:8px">
+        <button type="button" class="btn btn-ghost btn-sm" style="flex:1"
+          onclick="document.getElementById('detImgFile').removeAttribute('capture');
+                   document.getElementById('detImgFile').click()">
+          🖼 Choose Photo
+        </button>
+        <button type="button" class="btn btn-ghost btn-sm" style="flex:1"
+          onclick="document.getElementById('detImgFile').setAttribute('capture','environment');
+                   document.getElementById('detImgFile').click()">
+          📷 Take Photo
+        </button>
+      </div>
+      <input id="detImg" placeholder="Or paste image URL..." 
+        style="font-size:12px;color:var(--text-muted)">
+    </div>
     <div id="detImgPreview" style="display:none;margin-bottom:10px"><img id="detImgEl" style="width:100%;max-height:160px;object-fit:contain;border-radius:8px;border:1px solid var(--border)"></div>
     <div class="divider"></div>
     <div style="font-family:'Space Mono',monospace;font-size:10px;color:var(--text-muted);margin-bottom:10px">LOCATION</div>
@@ -806,7 +824,18 @@ function updateInboxBadge() {
   if(n>0){badge.textContent=n;badge.style.display='block';}
   else badge.style.display='none';
 }
-
+function handlePhotoUpload(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    document.getElementById('detImg').value = e.target.result;
+    const img = document.getElementById('detImgEl');
+    const prev = document.getElementById('detImgPreview');
+    img.src = e.target.result; prev.style.display = 'block';
+  };
+  reader.readAsDataURL(file);
+}
 // ── UTILS ──
 function setRoomFilter(id){roomFilter=id;renderTotes();document.getElementById('appBody').scrollTop=0;}
 function openSheet(id){document.getElementById(id).classList.add('open');}
