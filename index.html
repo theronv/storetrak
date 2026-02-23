@@ -10,486 +10,67 @@
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg: #0f0f0f;
-  --surface: #181818;
-  --surface2: #222;
-  --surface3: #2a2a2a;
-  --border: #2e2e2e;
-  --border-bright: #484848;
-  --accent: #f0a500;
-  --accent-dim: rgba(240,165,0,0.13);
-  --accent-border: rgba(240,165,0,0.32);
-  --accent2: #d48f00;
-  --text: #ece8e0;
-  --text-muted: #787878;
-  --text-dim: #444;
-  --green: #4caf78;
-  --red: #c95c5c;
-  --tab-h: 64px;
-  --header-h: 54px;
-  --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-top: env(safe-area-inset-top, 0px);
+  --bg: #0f0f0f; --surface: #181818; --surface2: #222; --surface3: #2a2a2a;
+  --border: #2e2e2e; --border-bright: #484848; --accent: #f0a500;
+  --accent-dim: rgba(240,165,0,0.13); --accent-border: rgba(240,165,0,0.32);
+  --text: #ece8e0; --text-muted: #787878; --text-dim: #444;
+  --green: #4caf78; --red: #c95c5c; --tab-h: 64px; --header-h: 54px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px); --safe-top: env(safe-area-inset-top, 0px);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; overflow: hidden; background: var(--bg); color: var(--text); font-family: 'Barlow', sans-serif; -webkit-font-smoothing: antialiased; }
 
-html, body {
-  height: 100%;
-  overflow: hidden;
-  background: var(--bg);
-  color: var(--text);
-  font-family: 'Barlow', sans-serif;
-  font-size: 15px;
-  -webkit-font-smoothing: antialiased;
-}
+/* ── UI COMPONENTS ── */
+.app-header { position: fixed; top: 0; left: 0; right: 0; height: calc(var(--header-h) + var(--safe-top)); padding-top: var(--safe-top); background: var(--surface); border-bottom: 1px solid var(--border); display: flex; align-items: center; padding-left: 16px; padding-right: 16px; gap: 12px; z-index: 50; }
+.logo { font-family: 'Space Mono', monospace; font-size: 14px; font-weight: 700; color: var(--accent); letter-spacing: 3px; }
+.header-search { flex: 1; position: relative; }
+.header-search input { width: 100%; background: var(--surface2); border: 1px solid var(--border); color: var(--text); padding: 9px 12px 9px 34px; border-radius: 8px; outline: none; }
 
-/* ── HEADER ── */
-.app-header {
-  position: fixed;
-  top: 0; left: 0; right: 0;
-  height: calc(var(--header-h) + var(--safe-top));
-  padding-top: var(--safe-top);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  padding-left: 16px;
-  padding-right: 16px;
-  gap: 12px;
-  z-index: 50;
-}
-.logo {
-  font-family: 'Space Mono', monospace;
-  font-size: 14px;
-  font-weight: 700;
-  color: var(--accent);
-  letter-spacing: 3px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.header-search {
-  flex: 1;
-  position: relative;
-}
-.header-search input {
-  width: 100%;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 9px 12px 9px 34px;
-  font-family: 'Barlow', sans-serif;
-  font-size: 15px;
-  border-radius: 8px;
-  outline: none;
-  transition: border-color 0.15s;
-  -webkit-appearance: none;
-}
-.header-search input:focus { border-color: var(--accent); background: var(--surface3); }
-.header-search input::placeholder { color: var(--text-dim); }
-.search-icon {
-  position: absolute; left: 10px; top: 50%;
-  transform: translateY(-50%);
-  color: var(--text-dim); font-size: 15px; pointer-events: none;
-}
-.status-wrap {
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  gap: 5px;
-}
-.status-dot {
-  width: 7px; height: 7px; border-radius: 50%;
-  background: var(--green);
-  animation: pulse 2.5s infinite;
-}
-.status-dot.loading { background: var(--accent); }
-.status-dot.error { background: var(--red); animation: none; }
-@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+.app-body { position: fixed; top: calc(var(--header-h) + var(--safe-top)); left: 0; right: 0; bottom: calc(var(--tab-h) + var(--safe-bottom)); overflow-y: auto; -webkit-overflow-scrolling: touch; }
 
-/* ── MAIN SCROLL AREA ── */
-.app-body {
-  position: fixed;
-  top: calc(var(--header-h) + var(--safe-top));
-  left: 0; right: 0;
-  bottom: calc(var(--tab-h) + var(--safe-bottom));
-  overflow-y: auto;
-  -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
-}
-
-/* ── BOTTOM TAB BAR ── */
-.tab-bar {
-  position: fixed;
-  bottom: 0; left: 0; right: 0;
-  height: calc(var(--tab-h) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: var(--surface);
-  border-top: 1px solid var(--border);
-  display: flex;
-  z-index: 50;
-}
-.tab {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 3px;
-  cursor: pointer;
-  transition: background 0.1s;
-  -webkit-tap-highlight-color: transparent;
-  user-select: none;
-  padding: 6px 4px 4px;
-}
-.tab:active { background: var(--surface2); }
+.tab-bar { position: fixed; bottom: 0; left: 0; right: 0; height: calc(var(--tab-h) + var(--safe-bottom)); padding-bottom: var(--safe-bottom); background: var(--surface); border-top: 1px solid var(--border); display: flex; z-index: 50; }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; cursor: pointer; padding: 6px 4px 4px; }
+.tab.active { color: var(--accent); }
+.tab-icon { font-size: 20px; color: var(--text-dim); }
 .tab.active .tab-icon { color: var(--accent); }
+.tab-label { font-family: 'Space Mono', monospace; font-size: 9px; text-transform: uppercase; color: var(--text-dim); }
 .tab.active .tab-label { color: var(--accent); }
-.tab-icon { font-size: 20px; color: var(--text-dim); transition: color 0.15s; line-height: 1; }
-.tab-label {
-  font-family: 'Space Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 1px;
-  color: var(--text-dim);
-  text-transform: uppercase;
-  transition: color 0.15s;
-}
 
-/* ── PAGES ── */
 .page { display: none; padding: 14px; }
 .page.active { display: block; }
 
-/* ── TOTE CARDS ── */
-.tote-list { display: flex; flex-direction: column; gap: 10px; }
-.tote-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  overflow: hidden;
-  transition: border-color 0.15s;
-}
-.tote-card-head {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px 14px 10px;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-}
-.tote-badge {
-  font-family: 'Space Mono', monospace;
-  font-size: 11px;
-  font-weight: 700;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-border);
-  padding: 3px 7px;
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.tote-name { font-weight: 600; font-size: 14px; flex: 1; min-width: 0; }
-.tote-count {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  color: var(--text-dim);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.tote-loc {
-  padding: 6px 14px;
-  font-size: 11px;
-  color: var(--text-muted);
-  font-family: 'Space Mono', monospace;
-  background: var(--surface2);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.tote-del-btn {
-  background: none; border: none; color: var(--text-dim);
-  font-size: 12px; padding: 4px 6px; cursor: pointer;
-  font-family: 'Barlow', sans-serif;
-  border-radius: 4px;
-  transition: color 0.1s, background 0.1s;
-}
-.tote-del-btn:active { color: var(--red); background: rgba(201,92,92,0.1); }
+/* ── ITEM CHIPS ── */
+.items-wrap { display: flex; flex-wrap: wrap; gap: 6px; }
+.item-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--surface2); border: 1px solid var(--border); border-radius: 6px; padding: 6px 10px; font-size: 14px; cursor: pointer; }
+.item-chip:active { background: var(--surface3); }
+.chip-dot { width: 8px; height: 8px; border-radius: 50%; }
+.chip-action { background: none; border: none; color: var(--text-dim); font-size: 16px; padding: 0 4px; cursor: pointer; }
+.chip-action:hover { color: var(--accent); }
 
-.tote-body { padding: 10px 12px 12px; }
-.items-wrap { display: flex; flex-wrap: wrap; gap: 4px; min-height: 10px; }
-.item-chip {
-  display: inline-flex; align-items: center; gap: 5px;
-  background: var(--surface2);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  padding: 5px 9px;
-  font-size: 13px;
-  cursor: default;
-  transition: border-color 0.1s;
-  user-select: none;
-}
-.chip-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
-.chip-del {
-  background: none; border: none;
-  color: var(--text-dim); cursor: pointer;
-  font-size: 16px; padding: 0 0 0 3px; line-height: 1;
-  min-width: 20px; min-height: 20px;
-  display: flex; align-items: center; justify-content: center;
-}
-.chip-del:active { color: var(--red); }
+/* ── FORMS ── */
+.add-item-row { display: flex; gap: 6px; }
+.item-text-input, .cat-sel { background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 6px; font-family: 'Barlow'; }
+.btn-add-item { background: var(--accent); color: #000; border: none; padding: 0 16px; border-radius: 6px; font-weight: 700; font-family: 'Barlow Condensed'; cursor: pointer; }
 
-.add-item-row {
-  display: flex; gap: 6px;
-}
-.tote-card .add-item-row {
-  margin-top: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-.item-text-input {
-  flex: 1; min-width: 0;
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 10px 10px;
-  font-size: 15px;
-  border-radius: 6px;
-  font-family: 'Barlow', sans-serif;
-  outline: none;
-  -webkit-appearance: none;
-  transition: border-color 0.15s;
-}
-.item-text-input:focus { border-color: var(--accent); background: var(--surface3); }
-.item-text-input::placeholder { color: var(--text-dim); }
-.cat-sel {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  color: var(--text);
-  padding: 10px 6px;
-  font-size: 13px;
-  border-radius: 6px;
-  outline: none;
-  cursor: pointer;
-  max-width: 100px;
-  -webkit-appearance: none;
-  appearance: none;
-}
-.btn-add-item {
-  background: var(--accent);
-  color: #000;
-  border: none;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 700;
-  border-radius: 6px;
-  cursor: pointer;
-  font-family: 'Barlow Condensed', sans-serif;
-  letter-spacing: 1px;
-  white-space: nowrap;
-  transition: background 0.1s;
-  flex-shrink: 0;
-  min-height: 44px;
-}
-.btn-add-item:active { background: var(--accent2); }
-
-/* ── SEARCH RESULTS ── */
-.sr-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 13px 14px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 7px;
-}
-.sr-item-name { font-weight: 600; font-size: 14px; flex: 1; min-width: 0; }
-.sr-loc {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-border);
-  padding: 3px 7px;
-  border-radius: 4px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-.sr-detail { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
-
-/* ── PAGE HEADERS ── */
-.page-hd {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 14px;
-  gap: 10px;
-}
-.page-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 22px;
-  font-weight: 700;
-  letter-spacing: 2px;
-  text-transform: uppercase;
-  line-height: 1;
-}
-.page-sub {
-  font-family: 'Space Mono', monospace;
-  font-size: 10px;
-  color: var(--text-muted);
-  margin-top: 3px;
-}
-
-/* ── STATS PAGE ── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 10px;
-  margin-bottom: 16px;
-}
-.stat-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 16px;
-  text-align: center;
-}
-.stat-num {
-  font-family: 'Space Mono', monospace;
-  font-size: 32px;
-  font-weight: 700;
-  color: var(--accent);
-  line-height: 1;
-}
-.stat-lbl {
-  font-family: 'Space Mono', monospace;
-  font-size: 9px;
-  letter-spacing: 1.5px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  margin-top: 4px;
-}
-.cat-breakdown {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  margin-bottom: 10px;
-}
-
-/* ── OVERLAYS ── */
-.overlay {
-  display: none;
-  position: fixed; inset: 0;
-  background: rgba(0,0,0,0.65);
-  z-index: 200;
-  align-items: flex-end;
-}
+/* ── MODALS / SHEETS ── */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.7); z-index: 200; align-items: flex-end; }
 .overlay.open { display: flex; }
-.sheet {
-  background: var(--surface);
-  border-top: 1px solid var(--border-bright);
-  border-radius: 16px 16px 0 0;
-  padding: 6px 20px 20px;
-  padding-bottom: calc(20px + var(--safe-bottom));
-  width: 100%;
-  animation: slideUp 0.22s cubic-bezier(.32,.72,0,1);
-  max-height: 90vh;
-  overflow-y: auto;
-}
-.sheet-handle {
-  width: 36px; height: 4px;
-  background: var(--border-bright);
-  border-radius: 2px;
-  margin: 8px auto 16px;
-}
-.sheet-title {
-  font-family: 'Barlow Condensed', sans-serif;
-  font-size: 17px; letter-spacing: 2px; text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: 16px;
-}
-.field { margin-bottom: 14px; }
-.field label {
-  display: block;
-  font-family: 'Space Mono', monospace;
-  font-size: 9px; letter-spacing: 1.5px; text-transform: uppercase;
-  color: var(--text-muted); margin-bottom: 6px;
-}
-.field input, .field select {
-  width: 100%;
-  background: var(--bg);
-  border: 1px solid var(--border-bright);
-  color: var(--text);
-  padding: 12px 14px;
-  font-size: 16px;
-  border-radius: 8px;
-  font-family: 'Barlow', sans-serif;
-  outline: none;
-}
-.id-preview {
-  background: var(--accent-dim);
-  border: 1px solid var(--accent-border);
-  border-radius: 7px;
-  padding: 10px 12px;
-  font-family: 'Space Mono', monospace;
-  font-size: 13px;
-  color: var(--accent);
-  margin-bottom: 16px;
-}
-.sheet-btns { display: flex; gap: 8px; margin-top: 20px; }
-.btn-cancel, .btn-confirm {
-  flex: 1; border-radius: 8px; font-family: 'Barlow', sans-serif; min-height: 50px; cursor: pointer; border: none;
-}
-.btn-cancel { background: var(--surface2); color: var(--text-muted); border: 1px solid var(--border); }
-.btn-confirm { background: var(--accent); color: #000; font-weight: 700; text-transform: uppercase; font-family: 'Barlow Condensed'; }
-
-/* ── TOAST ── */
-.toast {
-  position: fixed;
-  bottom: calc(var(--tab-h) + var(--safe-bottom) + 12px);
-  left: 16px; right: 16px;
-  background: var(--surface3);
-  border: 1px solid var(--border-bright);
-  color: var(--text);
-  padding: 13px 16px;
-  border-radius: 10px;
-  font-size: 14px;
-  z-index: 300;
-  transform: translateY(20px);
-  opacity: 0;
-  transition: transform 0.22s ease, opacity 0.22s ease;
-  pointer-events: none;
-  text-align: center;
-}
-.toast.show { transform: translateY(0); opacity: 1; }
-
-.rooms-grid { display: flex; flex-direction: column; gap: 8px; }
-.room-card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-.room-code-badge {
-  font-family: 'Space Mono', monospace;
-  font-size: 13px; font-weight: 700; color: var(--accent); background: var(--accent-dim); border: 1px solid var(--accent-border); padding: 4px 9px; border-radius: 5px;
-}
-
-.room-filter-strip { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 12px; scrollbar-width: none; }
-.room-chip {
-  display: flex; align-items: center; gap: 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 6px 12px; font-size: 13px; white-space: nowrap; cursor: pointer;
-}
-.room-chip.active { background: var(--accent); color: #000; border-color: var(--accent); }
+.sheet { background: var(--surface); border-top: 1px solid var(--border-bright); border-radius: 16px 16px 0 0; padding: 10px 20px 20px; width: 100%; max-height: 90vh; overflow-y: auto; animation: slideUp 0.25s ease-out; }
+.sheet-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.field { margin-bottom: 12px; }
+.field.full { grid-column: span 2; }
+.field label { display: block; font-family: 'Space Mono', monospace; font-size: 10px; color: var(--text-muted); text-transform: uppercase; margin-bottom: 4px; }
+.field input, .field select, .field textarea { width: 100%; background: var(--bg); border: 1px solid var(--border); color: var(--text); padding: 10px; border-radius: 8px; font-size: 15px; font-family: 'Barlow'; outline: none; }
+.item-img-preview { width: 100%; height: 160px; background: var(--surface2); border-radius: 8px; margin-bottom: 12px; object-fit: cover; display: none; }
+.item-img-preview.has-img { display: block; }
 
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
 
 @media (min-width: 640px) {
-  .app-body { max-width: 680px; margin: 0 auto; left: 0; right: 0; }
-  .tab-bar { max-width: 680px; margin: 0 auto; left: 0; right: 0; }
+  .app-body, .tab-bar { max-width: 600px; margin: 0 auto; left: 0; right: 0; }
+  .overlay { align-items: center; justify-content: center; }
+  .sheet { max-width: 450px; border-radius: 16px; margin-bottom: 0; }
 }
 </style>
 </head>
@@ -498,122 +79,71 @@ html, body {
 <header class="app-header">
   <div class="logo">STRTRAK</div>
   <div class="header-search">
-    <span class="search-icon">⌕</span>
-    <input id="searchInput" placeholder="Search items..." autocomplete="off">
+    <input id="searchInput" placeholder="Search inventory..." autocomplete="off">
   </div>
-  <div class="status-wrap">
-    <div class="status-dot loading" id="statusDot"></div>
-  </div>
+  <div id="statusDot" class="status-dot"></div>
 </header>
 
-<div class="app-body" id="appBody">
-
+<div class="app-body">
   <div class="page active" id="pageInbox">
-    <div class="page-hd">
-      <div>
-        <div class="page-title">Inbox</div>
-        <div class="page-sub" id="inboxSubtitle">Unsorted Items</div>
+    <h2 style="font-family:'Barlow Condensed'; letter-spacing:1px; margin-bottom:10px;">INBOX</h2>
+    <div style="background:var(--surface); padding:12px; border-radius:10px; border:1px solid var(--accent-border); margin-bottom:16px;">
+      <div class="add-item-row">
+        <input class="item-text-input" id="inboxInput" style="flex:1" placeholder="Quick scan item..." onkeydown="if(event.key==='Enter') addInboxItem()">
+        <button class="btn-add-item" onclick="addInboxItem()">ADD</button>
       </div>
     </div>
-    
-    <div class="tote-card" style="margin-bottom: 16px; border-color: var(--accent-border);">
-      <div class="tote-body">
-        <div class="add-item-row">
-          <input class="item-text-input" id="inboxInput" placeholder="Quick scan item..." 
-                 onkeydown="if(event.key==='Enter') addInboxItem()">
-          <select class="cat-sel" id="inboxCat">
-            <option value="other">Category</option>
-            <option value="tools">Tools</option>
-            <option value="electronics">Electronics</option>
-            <option value="cables">Cables</option>
-            <option value="hardware">Hardware</option>
-            <option value="craft">Craft</option>
-            <option value="seasonal">Seasonal</option>
-            <option value="clothing">Clothing</option>
-          </select>
-          <button class="btn-add-item" onclick="addInboxItem()">ADD</button>
-        </div>
-      </div>
-    </div>
-
     <div id="inboxList" class="items-wrap"></div>
   </div>
 
   <div class="page" id="pageTotes">
     <div id="totePageContent"></div>
   </div>
-
+  
   <div class="page" id="pageRooms">
-    <div class="page-hd">
-      <div>
-        <div class="page-title">Rooms</div>
-        <div class="page-sub" id="roomsSubtitle"></div>
-      </div>
-      <button class="btn-add-item" onclick="openRoomSheet()">+ Room</button>
-    </div>
     <div class="rooms-grid" id="roomsGrid"></div>
   </div>
-
-  <div class="page" id="pageStats">
-    <div class="page-hd"><div class="page-title">Overview</div></div>
-    <div class="stats-grid">
-      <div class="stat-card"><div class="stat-num" id="sRooms">—</div><div class="stat-lbl">Rooms</div></div>
-      <div class="stat-card"><div class="stat-num" id="sTotes">—</div><div class="stat-lbl">Totes</div></div>
-      <div class="stat-card"><div class="stat-num" id="sItems">—</div><div class="stat-lbl">Items</div></div>
-      <div class="stat-card"><div class="stat-num" id="sCats">—</div><div class="stat-lbl">Categories</div></div>
-    </div>
-    <div class="cat-breakdown" id="catBreakdown"></div>
-  </div>
-
 </div>
 
 <nav class="tab-bar">
-  <div class="tab active" id="tabInbox" onclick="switchTab('inbox')">
-    <span class="tab-icon">📥</span>
-    <span class="tab-label">Inbox</span>
-  </div>
-  <div class="tab" id="tabTotes" onclick="switchTab('totes')">
-    <span class="tab-icon">📦</span>
-    <span class="tab-label">Totes</span>
-  </div>
-  <div class="tab" id="tabRooms" onclick="switchTab('rooms')">
-    <span class="tab-icon">🏠</span>
-    <span class="tab-label">Rooms</span>
-  </div>
-  <div class="tab" id="tabAdd" onclick="openToteSheet()">
-    <span class="tab-icon" style="font-size:26px;color:var(--accent);">+</span>
-    <span class="tab-label" style="color:var(--accent);">Tote</span>
-  </div>
-  <div class="tab" id="tabStats" onclick="switchTab('stats')">
-    <span class="tab-icon">📊</span>
-    <span class="tab-label">Stats</span>
-  </div>
+  <div class="tab active" id="tabInbox" onclick="switchTab('inbox')"><span class="tab-icon">📥</span><span class="tab-label">Inbox</span></div>
+  <div class="tab" id="tabTotes" onclick="switchTab('totes')"><span class="tab-icon">📦</span><span class="tab-label">Totes</span></div>
+  <div class="tab" id="tabRooms" onclick="switchTab('rooms')"><span class="tab-icon">🏠</span><span class="tab-label">Rooms</span></div>
 </nav>
 
-<div class="overlay" id="roomOverlay">
+<div class="overlay" id="detailOverlay">
   <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Add Room</div>
-    <div class="field"><label>Room Name</label><input id="roomNameInput" placeholder="Garage, Attic…"></div>
-    <div class="field"><label>Short Code</label><input id="roomCodeInput" maxlength="4" placeholder="GAR, ATT…"></div>
-    <div class="sheet-btns">
-      <button class="btn-cancel" onclick="closeRoomSheet()">Cancel</button>
-      <button class="btn-confirm" id="roomSubmitBtn" onclick="submitRoom()">Add Room</button>
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+      <h3 id="detailTitleHeader" style="font-family:'Barlow Condensed'; color:var(--accent); letter-spacing:1px;">ITEM DETAILS</h3>
+      <button onclick="closeDetail()" style="background:none; border:none; color:var(--text-muted); font-size:24px;">×</button>
+    </div>
+    
+    <img id="detailImg" class="item-img-preview" src="">
+
+    <div class="sheet-grid">
+      <div class="field full"><label>Item Name</label><input id="detName"></div>
+      <div class="field"><label>Make</label><input id="detMake" placeholder="e.g. Sony"></div>
+      <div class="field"><label>Model</label><input id="detModel" placeholder="e.g. WH-1000XM4"></div>
+      <div class="field"><label>Year</label><input id="detYear" placeholder="2023"></div>
+      <div class="field"><label>Value ($)</label><input id="detValue" type="number" placeholder="0.00"></div>
+      <div class="field full"><label>Image URL</label><input id="detImgUrl" placeholder="https://..."></div>
+      <div class="field full"><label>Location Context</label><input id="detLoc" readonly style="opacity:0.6"></div>
+    </div>
+
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn-add-item" style="flex:2; background:var(--green); height:44px;" onclick="saveItem()">SAVE CHANGES</button>
+      <button class="btn-add-item" style="flex:1; background:var(--red); height:44px;" onclick="deleteCurrentItem()">DELETE</button>
     </div>
   </div>
 </div>
 
-<div class="overlay" id="toteOverlay">
-  <div class="sheet">
-    <div class="sheet-handle"></div>
-    <div class="sheet-title">Add New Tote</div>
-    <div class="field"><label>Room</label><select id="toteRoomSel" onchange="updateIdPreview()"></select></div>
-    <div class="field"><label>Tote Name</label><input id="toteNameInput"></div>
-    <div class="field"><label>Location</label><input id="toteShelfInput" placeholder="Shelf A, Box 1…"></div>
-    <div class="id-preview" id="idPreview">Select a room</div>
-    <div class="sheet-btns">
-      <button class="btn-cancel" onclick="closeToteSheet()">Cancel</button>
-      <button class="btn-confirm" id="toteSubmitBtn" onclick="submitTote()">Create Tote</button>
+<div class="overlay" id="moveOverlay">
+  <div class="sheet" style="max-width:320px">
+    <h3 style="font-family:'Barlow Condensed'; margin-bottom:12px;">ASSIGN TO TOTE</h3>
+    <div class="field"><label>Select Destination</label><select id="moveDestSel"></select></div>
+    <div style="display:flex; gap:8px;">
+      <button class="btn-add-item" style="flex:1; height:44px; background:var(--surface2); color:var(--text)" onclick="closeMove()">CANCEL</button>
+      <button class="btn-add-item" style="flex:1; height:44px;" onclick="confirmMove()">MOVE</button>
     </div>
   </div>
 </div>
@@ -624,188 +154,126 @@ html, body {
 const SUPABASE_URL = 'https://kwhawubarlocjluujurq.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_dByd8AVDaZEWIoFkpAYXvw_-6HDtTfi';
 
-const CATEGORIES = {
-  tools: { label: 'Tools', color: '#e05c00' },
-  electronics: { label: 'Electronics', color: '#4a9eff' },
-  cables: { label: 'Cables', color: '#7c4aff' },
-  hardware: { label: 'Hardware', color: '#aaa' },
-  craft: { label: 'Craft', color: '#e04aaa' },
-  seasonal: { label: 'Seasonal', color: '#4caf78' },
-  clothing: { label: 'Clothing', color: '#c89b4a' },
-  other: { label: 'Other', color: '#555' },
-};
+const CATEGORIES = { tools: {color: '#e05c00'}, electronics: {color: '#4a9eff'}, other: {color: '#555'} };
 
-let rooms = [], totes = [], items = [];
-let activeTab = 'inbox';
-let selectedRoomFilter = 'all';
-let searchQuery = '';
+let rooms = [], totes = [], items = [], activeItem = null, movingItemId = null;
 
 async function sb(method, path, body) {
-  const headers = { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json' };
-  if (method === 'POST') headers['Prefer'] = 'return=representation';
-  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, { method, headers, body: body ? JSON.stringify(body) : undefined });
-  const text = await res.text();
-  return text ? JSON.parse(text) : null;
+  const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+    method, headers: { 'apikey': SUPABASE_KEY, 'Authorization': `Bearer ${SUPABASE_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=representation' },
+    body: body ? JSON.stringify(body) : undefined
+  });
+  return res.json();
 }
 
-async function loadAll() {
-  setStatus('loading');
-  try {
-    [rooms, totes, items] = await Promise.all([
-      sb('GET', 'rooms?select=*&order=name'),
-      sb('GET', 'totes?select=*&order=created_at'),
-      sb('GET', 'items?select=*&order=created_at'),
-    ]);
-    setStatus('ok');
-    renderAll();
-  } catch(e) { setStatus('error'); }
-}
-
-function switchTab(tab) {
-  activeTab = tab;
-  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  const targetTab = document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1));
-  const targetPage = document.getElementById('page' + tab.charAt(0).toUpperCase() + tab.slice(1));
-  if(targetTab) targetTab.classList.add('active');
-  if(targetPage) targetPage.classList.add('active');
+async function load() {
+  [rooms, totes, items] = await Promise.all([sb('GET', 'rooms'), sb('GET', 'totes'), sb('GET', 'items')]);
   renderAll();
 }
 
+function renderAll() {
+  const inboxList = document.getElementById('inboxList');
+  const inboxItems = items.filter(i => !i.tote_id);
+  
+  inboxList.innerHTML = inboxItems.map(i => `
+    <div class="item-chip" onclick="openDetail('${i.id}')">
+      <span class="chip-dot" style="background:${(CATEGORIES[i.category]||CATEGORIES.other).color}"></span>
+      ${i.name}
+      <button class="chip-action" onclick="event.stopPropagation(); openMove('${i.id}')">📦</button>
+    </div>
+  `).join('');
+  
+  // Basic Totes Rendering for navigation
+  const toteContent = document.getElementById('totePageContent');
+  toteContent.innerHTML = totes.map(t => `
+    <div style="background:var(--surface); margin-bottom:10px; padding:12px; border-radius:10px;">
+      <div style="font-weight:700; color:var(--accent)">${t.id} - ${t.name}</div>
+      <div class="items-wrap" style="margin-top:10px;">
+        ${items.filter(item => item.tote_id === t.id).map(item => `
+          <div class="item-chip" onclick="openDetail('${item.id}')">${item.name}</div>
+        `).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+
+// ── ITEM LOGIC ──
 async function addInboxItem() {
   const input = document.getElementById('inboxInput');
-  const catSel = document.getElementById('inboxCat');
-  const name = input.value.trim();
-  if (!name) return;
-  input.disabled = true;
-  try {
-    const [item] = await sb('POST', 'items', { tote_id: null, name, category: catSel.value });
-    items.push(item);
-    input.value = '';
-    renderAll();
-    input.focus();
-  } catch(e) { showToast('Error adding item', 'error'); }
-  input.disabled = false;
-}
-
-function renderInbox() {
-  const list = document.getElementById('inboxList');
-  const inboxItems = items.filter(i => i.tote_id === null);
-  document.getElementById('inboxSubtitle').textContent = `${inboxItems.length} UNSORTED ITEMS`;
-  
-  if (!inboxItems.length) {
-    list.innerHTML = `<div class="empty" style="width:100%"><p>Everything is sorted! Start scanning above.</p></div>`;
-    return;
-  }
-  list.innerHTML = inboxItems.map(item => {
-    const cat = CATEGORIES[item.category] || CATEGORIES.other;
-    return `<span class="item-chip" style="padding: 8px 12px; font-size: 14px;">
-      <span class="chip-dot" style="background:${cat.color}"></span>
-      ${esc(item.name)}
-      <button class="chip-del" onclick="removeItem('${item.id}')">×</button>
-    </span>`;
-  }).join('');
-}
-
-function renderTotes() {
-  const content = document.getElementById('totePageContent');
-  if (searchQuery) { renderSearchResults(content); return; }
-
-  const filteredTotes = selectedRoomFilter === 'all' ? totes : totes.filter(t => t.room_id === selectedRoomFilter);
-  
-  let html = `<div class="room-filter-strip">
-    <div class="room-chip ${selectedRoomFilter === 'all' ? 'active' : ''}" onclick="setRoomFilter('all')">All</div>
-    ${rooms.map(r => `<div class="room-chip ${selectedRoomFilter === r.id ? 'active' : ''}" onclick="setRoomFilter('${r.id}')">${esc(r.name)}</div>`).join('')}
-  </div>`;
-
-  if (!filteredTotes.length) {
-    html += `<div class="empty"><p>No totes here.</p></div>`;
-  } else {
-    html += `<div class="tote-list">${filteredTotes.map(t => {
-      const tItems = items.filter(i => i.tote_id === t.id);
-      return `<div class="tote-card">
-        <div class="tote-card-head"><span class="tote-badge">${t.id}</span><span class="tote-name">${esc(t.name)}</span><span class="tote-count">${tItems.length}×</span></div>
-        <div class="tote-loc"><span>📍 ${t.shelf || 'No loc'}</span><button class="tote-del-btn" onclick="deleteTote('${t.id}')">Delete</button></div>
-        <div class="tote-body">
-          <div class="items-wrap">${tItems.map(i => `<span class="item-chip"><span class="chip-dot" style="background:${(CATEGORIES[i.category]||CATEGORIES.other).color}"></span>${esc(i.name)}<button class="chip-del" onclick="removeItem('${i.id}')">×</button></span>`).join('')}</div>
-          <div class="add-item-row" style="margin-top:10px; padding-top:10px; border-top:1px solid var(--border);">
-            <input class="item-text-input" id="ii-${t.id}" placeholder="Add..." onkeydown="if(event.key==='Enter') addItem('${t.id}')">
-            <button class="btn-add-item" onclick="addItem('${t.id}')">ADD</button>
-          </div>
-        </div>
-      </div>`;
-    }).join('')}</div>`;
-  }
-  content.innerHTML = html;
-}
-
-function renderSearchResults(container) {
-  const q = searchQuery.toLowerCase();
-  const results = items.filter(i => i.name.toLowerCase().includes(q));
-  container.innerHTML = `<div class="page-hd"><div class="page-title">Results</div></div>` + 
-    results.map(i => {
-      const t = totes.find(tote => tote.id === i.tote_id);
-      return `<div class="sr-card">
-        <div class="sr-item-name">${hl(i.name, searchQuery)}</div>
-        <span class="sr-loc">${t ? t.id : 'INBOX'}</span>
-      </div>`;
-    }).join('');
-}
-
-function renderRooms() {
-  const grid = document.getElementById('roomsGrid');
-  document.getElementById('roomsSubtitle').textContent = `${rooms.length} ROOMS · ${totes.length} TOTES`;
-  grid.innerHTML = rooms.map(r => `<div class="room-card"><span class="room-code-badge">${r.code}</span><div style="flex:1"><b>${esc(r.name)}</b></div></div>`).join('');
-}
-
-function renderStats() {
-  document.getElementById('sRooms').textContent = rooms.length;
-  document.getElementById('sTotes').textContent = totes.length;
-  document.getElementById('sItems').textContent = items.length;
-}
-
-function renderAll() {
-  renderInbox();
-  renderTotes();
-  renderRooms();
-  renderStats();
-}
-
-// ── UTILS ──
-async function addItem(toteId) {
-  const input = document.getElementById(`ii-${toteId}`);
   if (!input.value.trim()) return;
-  const [item] = await sb('POST', 'items', { tote_id: toteId, name: input.value.trim(), category: 'other' });
-  items.push(item);
+  const [newItem] = await sb('POST', 'items', { name: input.value.trim(), category: 'other' });
+  items.push(newItem);
   input.value = '';
   renderAll();
 }
 
-async function removeItem(id) {
-  await sb('DELETE', `items?id=eq.${id}`);
-  items = items.filter(i => i.id !== id);
+function openDetail(id) {
+  activeItem = items.find(i => i.id == id);
+  document.getElementById('detName').value = activeItem.name || '';
+  document.getElementById('detMake').value = activeItem.make || '';
+  document.getElementById('detModel').value = activeItem.model || '';
+  document.getElementById('detYear').value = activeItem.year || '';
+  document.getElementById('detValue').value = activeItem.value || '';
+  document.getElementById('detImgUrl').value = activeItem.image_url || '';
+  document.getElementById('detLoc').value = activeItem.tote_id ? `Tote: ${activeItem.tote_id}` : 'Location: INBOX';
+  
+  const img = document.getElementById('detailImg');
+  if (activeItem.image_url) { img.src = activeItem.image_url; img.classList.add('has-img'); }
+  else { img.classList.remove('has-img'); }
+
+  document.getElementById('detailOverlay').classList.add('open');
+}
+
+async function saveItem() {
+  const updates = {
+    name: document.getElementById('detName').value,
+    make: document.getElementById('detMake').value,
+    model: document.getElementById('detModel').value,
+    year: document.getElementById('detYear').value,
+    value: document.getElementById('detValue').value,
+    image_url: document.getElementById('detImgUrl').value
+  };
+  await sb('PATCH', `items?id=eq.${activeItem.id}`, updates);
+  Object.assign(activeItem, updates);
+  closeDetail();
   renderAll();
 }
 
-function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;'); }
-function hl(text, q) { const re = new RegExp(`(${q})`, 'gi'); return esc(text).replace(re, '<mark>$1</mark>'); }
-function setStatus(type) { document.getElementById('statusDot').className = 'status-dot ' + type; }
-function setRoomFilter(id) { selectedRoomFilter = id; renderTotes(); }
-function openRoomSheet() { document.getElementById('roomOverlay').classList.add('open'); }
-function closeRoomSheet() { document.getElementById('roomOverlay').classList.remove('open'); }
-function openToteSheet() { 
-  document.getElementById('toteRoomSel').innerHTML = rooms.map(r => `<option value="${r.id}">${r.name}</option>`).join('');
-  document.getElementById('toteOverlay').classList.add('open'); 
+async function deleteCurrentItem() {
+  if (!confirm('Delete this item permanently?')) return;
+  await sb('DELETE', `items?id=eq.${activeItem.id}`);
+  items = items.filter(i => i.id !== activeItem.id);
+  closeDetail();
+  renderAll();
 }
-function closeToteSheet() { document.getElementById('toteOverlay').classList.remove('open'); }
 
-document.getElementById('searchInput').addEventListener('input', function() {
-  searchQuery = this.value;
-  if (activeTab !== 'totes') switchTab('totes');
-  else renderTotes();
-});
+// ── MOVE LOGIC ──
+function openMove(id) {
+  movingItemId = id;
+  const sel = document.getElementById('moveDestSel');
+  sel.innerHTML = totes.map(t => `<option value="${t.id}">${t.id} - ${t.name}</option>`).join('');
+  document.getElementById('moveOverlay').classList.add('open');
+}
 
-loadAll();
+async function confirmMove() {
+  const dest = document.getElementById('moveDestSel').value;
+  await sb('PATCH', `items?id=eq.${movingItemId}`, { tote_id: dest });
+  const item = items.find(i => i.id == movingItemId);
+  item.tote_id = dest;
+  closeMove();
+  renderAll();
+}
+
+function closeDetail() { document.getElementById('detailOverlay').classList.remove('open'); }
+function closeMove() { document.getElementById('moveOverlay').classList.remove('open'); }
+
+function switchTab(tab) {
+  document.querySelectorAll('.tab, .page').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+  document.getElementById('page' + tab.charAt(0).toUpperCase() + tab.slice(1)).classList.add('active');
+}
+
+load();
 </script>
 </body>
 </html>
