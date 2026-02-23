@@ -329,7 +329,7 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
     <div class="sheet-btns">
       <button class="btn btn-danger" onclick="deleteActiveItem()">Delete</button>
       <button class="btn btn-ghost" onclick="closeSheet('detailOverlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="saveItem()">Save</button>
+      <button class="btn btn-primary" id="detSaveBtn" onclick="saveItem()">Save</button>
     </div>
   </div>
 </div>
@@ -343,7 +343,7 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
     <div class="field"><label>Destination Tote</label><select id="moveDest"></select></div>
     <div class="sheet-btns">
       <button class="btn btn-ghost" onclick="closeSheet('moveOverlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmMove()">Move →</button>
+      <button class="btn btn-primary" id="moveConfirmBtn" onclick="confirmMove()">Move →</button>
     </div>
   </div>
 </div>
@@ -357,7 +357,7 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
     <div class="field"><label>Destination Tote</label><select id="bulkDest"></select></div>
     <div class="sheet-btns">
       <button class="btn btn-ghost" onclick="closeSheet('bulkMoveOverlay')">Cancel</button>
-      <button class="btn btn-primary" onclick="confirmBulkMove()">Move All →</button>
+      <button class="btn btn-primary" id="bulkMoveConfirmBtn" onclick="confirmBulkMove()">Move All →</button>
     </div>
   </div>
 </div>
@@ -516,9 +516,11 @@ function openBulkMove() {
   openSheet('bulkMoveOverlay');
 }
 async function confirmBulkMove() {
+  const btn=document.getElementById('bulkMoveConfirmBtn');
   const dest = document.getElementById('bulkDest').value;
   if (!dest) { toast('Select a destination', 'error'); return; }
-  
+
+  btn.disabled=true;
   const ids = [...selectedInboxIds];
   setStatus('loading');
   
@@ -542,6 +544,7 @@ async function confirmBulkMove() {
     setStatus('error');
     toast('Move failed - check console', 'error');
   }
+  btn.disabled=false;
 }
 
 // ── ITEM DETAIL ──
@@ -570,11 +573,13 @@ function openDetail(id) {
   openSheet('detailOverlay');
 }
 async function saveItem() {
+  const btn=document.getElementById('detSaveBtn');
+  btn.disabled=true;
   const name=document.getElementById('detName').value.trim();
   const image_url=document.getElementById('detImg').value.trim()||null;
-  if(!name){toast('Item name required','error');return;}
+  if(!name){btn.disabled=false;toast('Item name required','error');return;}
   if(image_url && image_url.startsWith('data:') && image_url.length > 500000){
-    toast('Photo too large — try a smaller image','error'); return;
+    btn.disabled=false;toast('Photo too large — try a smaller image','error'); return;
   }
   // Core fields always sent; optional fields only included when non-null
   // so missing DB columns don't cause errors on empty fields
@@ -594,6 +599,7 @@ async function saveItem() {
     Object.assign(items.find(i=>i.id===activeItemId),updates);
     closeSheet('detailOverlay'); renderAll(); toast('Saved','success');
   } catch(e){console.error('Save item error:',e.message||e); toast('Error saving item','error');}
+  btn.disabled=false;
 }
 async function deleteActiveItem() {
   if(!confirm('Delete this item?')) return;
@@ -617,12 +623,15 @@ function openMove(id, e) {
   openSheet('moveOverlay');
 }
 async function confirmMove() {
+  const btn=document.getElementById('moveConfirmBtn');
+  btn.disabled=true;
   const dest=document.getElementById('moveDest').value||null;
   try {
     await sb('PATCH',`items?id=eq.${activeItemId}`,{tote_id:dest});
     items.find(i=>i.id===activeItemId).tote_id=dest;
     closeSheet('moveOverlay'); renderAll(); toast('Item moved','success');
   } catch(e){toast('Error moving item','error');}
+  btn.disabled=false;
 }
 
 // ── ADD ITEM TO TOTE ──
