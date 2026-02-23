@@ -172,10 +172,28 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
 }
 ::-webkit-scrollbar{width:3px}
 ::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+/* LOADER */
+.loader-screen{position:fixed;inset:0;background:var(--bg);z-index:500;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:20px;transition:opacity .3s}
+.loader-screen.hidden{opacity:0;pointer-events:none}
+.loader-logo{font-family:'Space Mono',monospace;font-size:18px;font-weight:700;color:var(--accent);letter-spacing:6px}
+.loader-boxes{display:flex;gap:8px}
+.loader-box{width:10px;height:10px;border-radius:2px;background:var(--accent);animation:boxPop .9s ease-in-out infinite}
+.loader-box:nth-child(2){animation-delay:.15s}
+.loader-box:nth-child(3){animation-delay:.3s}
+.loader-box:nth-child(4){animation-delay:.45s}
+@keyframes boxPop{0%,100%{transform:scaleY(1);opacity:.3}50%{transform:scaleY(2);opacity:1}}
 </style>
 </head>
 <body>
-
+<div class="loader-screen" id="loaderScreen">
+  <div class="loader-logo">STRTRAK</div>
+  <div class="loader-boxes">
+    <div class="loader-box"></div>
+    <div class="loader-box"></div>
+    <div class="loader-box"></div>
+    <div class="loader-box"></div>
+  </div>
+</div>
 <header class="app-header">
   <div class="logo">STRTRAK</div>
   <div class="header-search">
@@ -424,13 +442,14 @@ async function sb(method, path, body) {
 
 async function loadAll() {
   setStatus('loading');
+  showLoader();
   try {
     [rooms,totes,items] = await Promise.all([
       sb('GET','rooms?select=*&order=name'),
       sb('GET','totes?select=*&order=id'),
       sb('GET','items?select=*&order=name'),
     ]);
-    setStatus('ok'); renderAll();
+    setStatus('ok'); hideLoader(); renderAll();
   } catch(e) { 
     setStatus('error'); 
     console.error('Load error:', e);
@@ -443,9 +462,7 @@ async function loadAll() {
           sb('GET','items?select=*&order=name'),
         ]);
         setStatus('ok'); renderAll();
-      } catch(e2) { 
-        toast('Could not connect','error'); 
-      }
+      } catch(e) { hideLoader(); setStatus('error'); toast('Could not connect','error'); }
     }, 2000);
   }
 }
@@ -861,6 +878,8 @@ function handlePhotoUpload(input) {
   reader.readAsDataURL(file);
 }
 // ── UTILS ──
+function showLoader(){document.getElementById('loaderScreen').classList.remove('hidden');}
+function hideLoader(){document.getElementById('loaderScreen').classList.add('hidden');}
 function setRoomFilter(id){roomFilter=id;renderTotes();document.getElementById('appBody').scrollTop=0;}
 function openSheet(id){document.getElementById(id).classList.add('open');}
 function closeSheet(id){document.getElementById(id).classList.remove('open');}
