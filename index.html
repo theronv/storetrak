@@ -449,10 +449,8 @@ async function loadAll() {
       sb('GET','items?select=*&order=name'),
     ]);
     setStatus('ok'); hideLoader(); renderAll();
-  } catch(e) { 
-    setStatus('error'); 
+  } catch(e) {
     console.error('Load error:', e);
-    // Retry once after 2 seconds before showing error
     setTimeout(async () => {
       try {
         [rooms,totes,items] = await Promise.all([
@@ -460,7 +458,7 @@ async function loadAll() {
           sb('GET','totes?select=*&order=id'),
           sb('GET','items?select=*&order=name'),
         ]);
-        setStatus('ok'); renderAll();
+        setStatus('ok'); hideLoader(); renderAll();
       } catch(e) { hideLoader(); setStatus('error'); toast('Could not connect','error'); }
     }, 2000);
   }
