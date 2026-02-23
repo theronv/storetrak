@@ -518,16 +518,35 @@ function openBulkMove() {
   openSheet('bulkMoveOverlay');
 }
 async function confirmBulkMove() {
-  const dest=document.getElementById('bulkDest').value;
-  const ids=[...selectedInboxIds];
+  const dest = document.getElementById('bulkDest').value;
+  if (!dest) { toast('Select a destination', 'error'); return; }
+  
+  const ids = [...selectedInboxIds];
+  setStatus('loading');
+  
   try {
-    for(const id of ids) {
-      await sb('PATCH',`items?id=eq.${id}`,{tote_id:dest});
-      const it=items.find(i=>i.id===id); if(it) it.tote_id=dest;
-    }
-    selectedInboxIds.clear(); closeSheet('bulkMoveOverlay'); renderAll(); updateBulkBar();
-    toast(`${ids.length} item${ids.length>1?'s':''} moved`,'success');
-  } catch(e){toast('Error moving items','error');}
+    // Process all moves
+    await Promise.all(ids.map(id => 
+      sb('PATCH', `items?id=eq.${id}`, { tote_id: dest })
+    ));
+
+    // Update local state
+    ids.forEach(id => {
+      const it = items.find(i => i.id === id);
+      if (it) it.tote_id = dest;
+    });
+
+    selectedInboxIds.clear();
+    closeSheet('bulkMoveOverlay');
+    renderAll();
+    updateBulkBar();
+    setStatus('ok');
+    toast(`${ids.length} item${ids.length>1?'s':''} moved to ${dest}`, 'success');
+  } catch (e) {
+    console.error('Bulk Move Error:', e);
+    setStatus('error');
+    toast('Move failed - check console', 'error');
+  }
 }
 
 // ── ITEM DETAIL ──
