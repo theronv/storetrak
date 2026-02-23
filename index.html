@@ -523,10 +523,7 @@ async function confirmBulkMove() {
   setStatus('loading');
   
   try {
-    // Process all moves
-    await Promise.all(ids.map(id => 
-      sb('PATCH', `items?id=eq.${id}`, { tote_id: dest })
-    ));
+    await sb('PATCH', `items?id=in.(${ids.join(',')})`, { tote_id: dest });
 
     // Update local state
     ids.forEach(id => {
