@@ -573,27 +573,30 @@ function openDetail(id) {
   openSheet('detailOverlay');
 }
 async function saveItem() {
-  const updates={
-    name:document.getElementById('detName').value.trim(),
-    category:document.getElementById('detCat').value,
+  const name=document.getElementById('detName').value.trim();
+  const image_url=document.getElementById('detImg').value.trim()||null;
+  if(!name){toast('Item name required','error');return;}
+  if(image_url && image_url.startsWith('data:') && image_url.length > 500000){
+    toast('Photo too large — try a smaller image','error'); return;
+  }
+  // Core fields always sent; optional fields only included when non-null
+  // so missing DB columns don't cause errors on empty fields
+  const updates={name, category:document.getElementById('detCat').value, tote_id:document.getElementById('detTote').value||null};
+  const optional={
     value:document.getElementById('detValue').value||null,
     make:document.getElementById('detMake').value.trim()||null,
     model:document.getElementById('detModel').value.trim()||null,
     year:document.getElementById('detYear').value.trim()||null,
     serial:document.getElementById('detSerial').value.trim()||null,
     notes:document.getElementById('detNotes').value.trim()||null,
-    image_url:document.getElementById('detImg').value.trim()||null,
-    tote_id:document.getElementById('detTote').value||null,
+    image_url,
   };
-  if(!updates.name){toast('Item name required','error');return;}
-  if(updates.image_url && updates.image_url.startsWith('data:') && updates.image_url.length > 500000){
-    toast('Photo too large — try a smaller image','error'); return;
-  }
+  Object.entries(optional).forEach(([k,v])=>{if(v!==null) updates[k]=v;});
   try {
     await sb('PATCH',`items?id=eq.${activeItemId}`,updates);
     Object.assign(items.find(i=>i.id===activeItemId),updates);
     closeSheet('detailOverlay'); renderAll(); toast('Saved','success');
-  } catch(e){toast('Error saving item','error');}
+  } catch(e){console.error('Save item error:',e.message||e); toast('Error saving item','error');}
 }
 async function deleteActiveItem() {
   if(!confirm('Delete this item?')) return;
