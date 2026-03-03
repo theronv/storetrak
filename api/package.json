@@ -1,0 +1,20 @@
+{
+  "name": "storetrak-api",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "migrate": "tsx src/migrate.ts"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.10.0",
+    "hono": "^4.6.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20241022.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.6.0",
+    "wrangler": "^4.69.0"
+  }
+}

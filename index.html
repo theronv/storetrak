@@ -181,6 +181,19 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
 .loader-box:nth-child(3){animation-delay:.3s}
 .loader-box:nth-child(4){animation-delay:.45s}
 @keyframes boxPop{0%,100%{transform:scaleY(1);opacity:.3}50%{transform:scaleY(2);opacity:1}}
+
+/* LOGIN OVERLAY */
+.login-overlay{position:fixed;inset:0;background:var(--bg);z-index:600;display:none;flex-direction:column;align-items:center;justify-content:center;padding:24px}
+.login-overlay.open{display:flex}
+.login-box{width:100%;max-width:360px;background:var(--surface);border:1px solid var(--border);border-top:2px solid var(--accent);border-radius:12px;padding:28px 24px 24px}
+.login-logo{font-family:'Space Mono',monospace;font-size:15px;font-weight:700;color:var(--accent);letter-spacing:4px;text-align:center;margin-bottom:22px}
+.login-title{font-family:'Barlow Condensed',sans-serif;font-size:16px;letter-spacing:2px;text-transform:uppercase;color:var(--text-muted);text-align:center;margin-bottom:20px}
+.login-err{background:var(--red-dim);border:1px solid rgba(201,92,92,.3);color:var(--red);border-radius:7px;padding:9px 12px;font-size:13px;margin-bottom:12px;display:none;text-align:center}
+.login-toggle{text-align:center;margin-top:14px;font-size:12px;color:var(--text-muted)}
+.login-toggle a{color:var(--accent);cursor:pointer;text-decoration:none}
+.login-toggle a:hover{text-decoration:underline}
+.logout-btn{background:none;border:none;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;padding:4px 6px;letter-spacing:1px;text-transform:uppercase}
+.logout-btn:hover{color:var(--red)}
 </style>
 </head>
 <body>
@@ -200,6 +213,7 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
     <input id="searchInput" placeholder="Search inventory..." autocomplete="off" autocorrect="off" spellcheck="false">
   </div>
   <div class="status-dot loading" id="statusDot"></div>
+  <button class="logout-btn" id="logoutBtn" onclick="logout()" style="display:none">OUT</button>
 </header>
 
 <!-- BULK SELECT BAR -->
@@ -395,9 +409,25 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
 
 <div class="toast" id="toast"></div>
 
+<!-- LOGIN OVERLAY -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-box">
+    <div class="login-logo">STRTRAK</div>
+    <div class="login-title" id="loginTitle">Sign In</div>
+    <div class="login-err" id="loginErr"></div>
+    <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" autocorrect="off" autocapitalize="none"></div>
+    <div class="field"><label>Password</label><input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+    <div class="sheet-btns" style="margin-top:8px">
+      <button class="btn btn-primary" id="loginSubmitBtn" onclick="submitAuth()" style="flex:1">Sign In</button>
+    </div>
+    <div class="login-toggle"><span id="loginToggleText">Don't have an account?</span> <a onclick="toggleAuthMode()" id="loginToggleLink">Register</a></div>
+  </div>
+</div>
+
 <script>
-const SB_URL = 'https://kwhawubarlocjluujurq.supabase.co';
-const SB_KEY = 'sb_publishable_dByd8AVDaZEWIoFkpAYXvw_-6HDtTfi';
+const API_BASE = 'https://storetrak-api.theronv.workers.dev';
+let authToken = localStorage.getItem('st_token') || '';
+
 const CATS = {
   tools:       {label:'Tools',       color:'#e05c00'},
   electronics: {label:'Electronics', color:'#4a9eff'},
@@ -414,35 +444,91 @@ let activeItemId=null, activeToteId=null;
 let selectedInboxIds=new Set();
 let activeTab='inbox', roomFilter='all', searchQuery='';
 
-// ── SUPABASE ──
-async function sb(method, path, body) {
-  const h = {'apikey':SB_KEY,'Authorization':`Bearer ${SB_KEY}`,'Content-Type':'application/json','Prefer':'return=representation'};
-  const r = await fetch(`${SB_URL}/rest/v1/${path}`, {method, headers:h, body:body?JSON.stringify(body):undefined});
-  if(!r.ok){const e=await r.text();throw new Error(e);}
-  const t=await r.text(); return t?JSON.parse(t):null;
+// ── API CLIENT ──
+async function api(method, path, body) {
+  const r = await fetch(`${API_BASE}/${path}`, {
+    method,
+    headers: {'Content-Type':'application/json','Authorization':`Bearer ${authToken}`},
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  if (r.status === 401) { showLogin(); return null; }
+  if (!r.ok) { const e = await r.text(); throw new Error(e); }
+  return r.json().catch(() => null);
+}
+
+// ── AUTH ──
+let authMode = 'login'; // 'login' | 'register'
+
+function showLogin() {
+  document.getElementById('loginOverlay').classList.add('open');
+  document.getElementById('logoutBtn').style.display = 'none';
+}
+function hideLogin() {
+  document.getElementById('loginOverlay').classList.remove('open');
+  document.getElementById('logoutBtn').style.display = '';
+  document.getElementById('loginErr').style.display = 'none';
+  document.getElementById('loginEmail').value = '';
+  document.getElementById('loginPassword').value = '';
+}
+function toggleAuthMode() {
+  authMode = authMode === 'login' ? 'register' : 'login';
+  const isReg = authMode === 'register';
+  document.getElementById('loginTitle').textContent = isReg ? 'Create Account' : 'Sign In';
+  document.getElementById('loginSubmitBtn').textContent = isReg ? 'Register' : 'Sign In';
+  document.getElementById('loginToggleText').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
+  document.getElementById('loginToggleLink').textContent = isReg ? 'Sign In' : 'Register';
+  document.getElementById('loginErr').style.display = 'none';
+}
+async function submitAuth() {
+  const btn = document.getElementById('loginSubmitBtn');
+  const email = document.getElementById('loginEmail').value.trim();
+  const password = document.getElementById('loginPassword').value;
+  const errEl = document.getElementById('loginErr');
+  errEl.style.display = 'none';
+  if (!email || !password) { errEl.textContent = 'Email and password required'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const endpoint = authMode === 'register' ? 'auth/register' : 'auth/login';
+    const r = await fetch(`${API_BASE}/${endpoint}`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email, password}),
+    });
+    const data = await r.json();
+    if (!r.ok) { errEl.textContent = data.error || 'Authentication failed'; errEl.style.display = 'block'; return; }
+    authToken = data.token;
+    localStorage.setItem('st_token', authToken);
+    hideLogin();
+    await loadAll();
+  } catch(e) {
+    errEl.textContent = 'Network error. Try again.'; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false;
+    btn.textContent = authMode === 'register' ? 'Register' : 'Sign In';
+  }
+}
+function logout() {
+  authToken = '';
+  localStorage.removeItem('st_token');
+  rooms = []; totes = []; items = [];
+  renderAll();
+  showLogin();
 }
 
 async function loadAll() {
+  if (!authToken) { showLogin(); hideLoader(); return; }
   setStatus('loading');
   showLoader();
   try {
     [rooms,totes,items] = await Promise.all([
-      sb('GET','rooms?select=*&order=name'),
-      sb('GET','totes?select=*&order=id'),
-      sb('GET','items?select=*&order=name'),
+      api('GET','rooms'),
+      api('GET','totes'),
+      api('GET','items'),
     ]);
+    if (rooms === null || totes === null || items === null) { hideLoader(); return; } // 401 → showLogin already called
+    rooms = rooms || []; totes = totes || []; items = items || [];
   } catch(e) {
-    console.error('Load error:', e);
-    await new Promise(r => setTimeout(r, 2000));
-    try {
-      [rooms,totes,items] = await Promise.all([
-        sb('GET','rooms?select=*&order=name'),
-        sb('GET','totes?select=*&order=id'),
-        sb('GET','items?select=*&order=name'),
-      ]);
-    } catch(e) {
-      hideLoader(); setStatus('error'); toast('Could not connect','error'); return;
-    }
+    hideLoader(); setStatus('error'); toast('Could not connect','error'); return;
   }
   setStatus('ok'); hideLoader(); renderAll();
 }
@@ -466,7 +552,8 @@ async function addInboxItem() {
   const name=inp.value.trim();
   if(!name) return;
   try {
-    const [item]=await sb('POST','items',{tote_id:null,name,category:cat,qty:1});
+    const item=await api('POST','items',{tote_id:null,name,category:cat,qty:1});
+    if(!item) return;
     items.push(item); inp.value=''; inp.focus(); renderAll(); toast('Added to inbox','success');
   } catch(e){toast('Error adding item','error');}
 }
@@ -508,7 +595,7 @@ async function confirmBulkMove() {
   setStatus('loading');
   
   try {
-    await sb('PATCH', `items?id=in.(${ids.join(',')})`, { tote_id: dest });
+    await api('PATCH', 'items', { ids, tote_id: dest });
 
     // Update local state
     ids.forEach(id => {
@@ -577,7 +664,7 @@ async function saveItem() {
   };
   Object.entries(optional).forEach(([k,v])=>{if(v!==null) updates[k]=v;});
   try {
-    await sb('PATCH',`items?id=eq.${activeItemId}`,updates);
+    await api('PATCH',`items/${activeItemId}`,updates);
     Object.assign(items.find(i=>i.id===activeItemId),updates);
     closeSheet('detailOverlay'); renderAll(); toast('Saved','success');
   } catch(e){console.error('Save item error:',e.message||e); toast('Error saving item','error');}
@@ -586,7 +673,7 @@ async function saveItem() {
 async function deleteActiveItem() {
   if(!confirm('Delete this item?')) return;
   try {
-    await sb('DELETE',`items?id=eq.${activeItemId}`);
+    await api('DELETE',`items/${activeItemId}`);
     items=items.filter(i=>i.id!==activeItemId);
     closeSheet('detailOverlay'); renderAll(); toast('Item deleted','success');
   } catch(e){toast('Error deleting item','error');}
@@ -609,7 +696,7 @@ async function confirmMove() {
   btn.disabled=true;
   const dest=document.getElementById('moveDest').value||null;
   try {
-    await sb('PATCH',`items?id=eq.${activeItemId}`,{tote_id:dest});
+    await api('PATCH',`items/${activeItemId}`,{tote_id:dest});
     items.find(i=>i.id===activeItemId).tote_id=dest;
     closeSheet('moveOverlay'); renderAll(); toast('Item moved','success');
   } catch(e){toast('Error moving item','error');}
@@ -624,7 +711,8 @@ async function addItemToTote(toteId) {
   if(!name) return;
   inp.disabled=true;
   try {
-    const [item]=await sb('POST','items',{tote_id:toteId,name,category:cat.value,qty:1});
+    const item=await api('POST','items',{tote_id:toteId,name,category:cat.value,qty:1});
+    if(!item) return;
     items.push(item); inp.value=''; renderAll();
     setTimeout(()=>{const el=document.getElementById(`ii-${toteId}`);if(el)el.focus();},40);
   } catch(e){toast('Error adding item','error');}
@@ -649,7 +737,7 @@ async function saveEditTote() {
   const roomId=document.getElementById('editToteRoom').value;
   if(!name){toast('Name required','error');return;}
   try {
-    await sb('PATCH',`totes?id=eq.${encodeURIComponent(activeToteId)}`,{name,shelf:shelf||null,room_id:roomId});
+    await api('PATCH',`totes/${encodeURIComponent(activeToteId)}`,{name,shelf:shelf||null,room_id:roomId});
     const t=totes.find(t=>t.id===activeToteId);
     Object.assign(t,{name,shelf:shelf||null,room_id:roomId});
     closeSheet('editToteOverlay'); renderAll(); toast('Tote updated','success');
@@ -658,7 +746,7 @@ async function saveEditTote() {
 async function deleteTote() {
   if(!confirm(`Delete tote ${activeToteId} and all its items?`)) return;
   try {
-    await sb('DELETE',`totes?id=eq.${encodeURIComponent(activeToteId)}`);
+    await api('DELETE',`totes/${encodeURIComponent(activeToteId)}`);
     totes=totes.filter(t=>t.id!==activeToteId);
     items=items.filter(i=>i.tote_id!==activeToteId);
     closeSheet('editToteOverlay'); renderAll(); toast('Tote deleted','success');
@@ -672,16 +760,17 @@ async function submitRoom() {
   if(!name||!code){toast('Fill in both fields','error');return;}
   if(rooms.find(r=>r.code===code)){toast('Code already in use','error');return;}
   try {
-    const [r]=await sb('POST','rooms',{name,code});
+    const r=await api('POST','rooms',{name,code});
+    if(!r) return;
     rooms.push(r); closeSheet('roomOverlay'); renderAll(); toast(`"${name}" added`,'success');
   } catch(e){toast('Error adding room','error');}
 }
 async function deleteRoom(id,name) {
   if(!confirm(`Delete "${name}" and ALL its totes and items?`)) return;
   try {
-    await sb('DELETE',`rooms?id=eq.${id}`);
-    rooms=rooms.filter(r=>r.id!==id);
+    await api('DELETE',`rooms/${id}`);
     const gone=totes.filter(t=>t.room_id===id).map(t=>t.id);
+    rooms=rooms.filter(r=>r.id!==id);
     totes=totes.filter(t=>t.room_id!==id);
     items=items.filter(i=>!gone.includes(i.tote_id));
     renderAll(); toast(`"${name}" deleted`,'success');
@@ -717,7 +806,8 @@ async function submitTote() {
   const btn=document.getElementById('toteSubmitBtn');
   btn.disabled=true;
   try {
-    const [t]=await sb('POST','totes',{id:toteId,room_id:rid,name,shelf:shelf||null});
+    const t=await api('POST','totes',{id:toteId,room_id:rid,name,shelf:shelf||null});
+    if(!t) return;
     totes.push(t); closeSheet('toteOverlay'); switchTab('totes'); renderAll(); toast(`${toteId} created`,'success');
   } catch(e){toast('Error creating tote','error');}
   btn.disabled=false;
@@ -913,6 +1003,8 @@ document.getElementById('searchInput').addEventListener('input',function(){
 document.getElementById('roomNameInput').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('roomCodeInput').focus();});
 document.getElementById('roomCodeInput').addEventListener('keydown',e=>{if(e.key==='Enter')submitRoom();});
 document.getElementById('inboxInput').addEventListener('keydown',e=>{if(e.key==='Enter')addInboxItem();});
+document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPassword').focus();});
+document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();});
 
 loadAll();
 </script>
