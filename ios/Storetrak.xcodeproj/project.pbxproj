@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 63;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -16,6 +16,7 @@
 		39E69108424F7028DC959A4C /* Barlow-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = E341DA3F6B11E1E22E6B8D53 /* Barlow-SemiBold.ttf */; };
 		3D7278814412B6107F3FEF41 /* RoomsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 02EEEF7E34E15EA6F23ED637 /* RoomsView.swift */; };
 		59F5A4D7660B2C588A75D7D4 /* BulkMoveSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5224DB2F4FE598AF4FD16D6A /* BulkMoveSheet.swift */; };
+		5DA3A268B4169830B0FD7DB4 /* ForgotPasswordView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A19BB6C2BB0B009D40277C54 /* ForgotPasswordView.swift */; };
 		6BC5DB712B2433A133F7B268 /* StoretrakApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 70D4430384DC8F389C093428 /* StoretrakApp.swift */; };
 		7725CAA608D6EA0F44F3C25F /* SpaceMono-Bold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5CC2791ADE94B7E7DCD3D136 /* SpaceMono-Bold.ttf */; };
 		7B7E527C357E2D54B63EEC4D /* TotesView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9FC8A2D0DDBB9F0BA310E0BE /* TotesView.swift */; };
@@ -43,7 +44,7 @@
 		1D76B04BCF151CD054849D45 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		293965D74058A58BED3A030E /* Barlow-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Barlow-Bold.ttf"; sourceTree = "<group>"; };
 		3BD1F07CA77FE9707149C9E4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		3FEF9CD9A5757AB0E3CC490B /* Storetrak.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Storetrak.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		3FEF9CD9A5757AB0E3CC490B /* Storetrak.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = Storetrak.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		40AEE22A9C120AFD32B07F9F /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIClient.swift; sourceTree = "<group>"; };
 		5224DB2F4FE598AF4FD16D6A /* BulkMoveSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BulkMoveSheet.swift; sourceTree = "<group>"; };
 		5CC2791ADE94B7E7DCD3D136 /* SpaceMono-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SpaceMono-Bold.ttf"; sourceTree = "<group>"; };
@@ -55,6 +56,7 @@
 		9E40B70B9957A2741E43CF5E /* Item.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Item.swift; sourceTree = "<group>"; };
 		9F5854E09FD5926E703C5D50 /* Barlow-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Barlow-Regular.ttf"; sourceTree = "<group>"; };
 		9FC8A2D0DDBB9F0BA310E0BE /* TotesView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TotesView.swift; sourceTree = "<group>"; };
+		A19BB6C2BB0B009D40277C54 /* ForgotPasswordView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ForgotPasswordView.swift; sourceTree = "<group>"; };
 		A66121F44C68CE236B72918D /* BarlowCondensed-Bold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "BarlowCondensed-Bold.ttf"; sourceTree = "<group>"; };
 		A6A534188B91C217B775CD6D /* ToastView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastView.swift; sourceTree = "<group>"; };
 		A97715705F0AB11F4549DB1D /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
@@ -116,6 +118,7 @@
 		447A0971176DB4935DDA4CB1 /* Auth */ = {
 			isa = PBXGroup;
 			children = (
+				A19BB6C2BB0B009D40277C54 /* ForgotPasswordView.swift */,
 				779245B0EAF41C06E9CA3646 /* LoginView.swift */,
 			);
 			path = Auth;
@@ -261,6 +264,7 @@
 				LastUpgradeCheck = 1500;
 				TargetAttributes = {
 					496F6121CF7962D9BEFDB6D5 = {
+						DevelopmentTeam = "";
 						ProvisioningStyle = Automatic;
 					};
 				};
@@ -275,6 +279,7 @@
 			);
 			mainGroup = C1BDA0FA19E1CACA041F0E88;
 			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
 			projectDirPath = "";
 			projectRoot = "";
 			targets = (
@@ -313,6 +318,7 @@
 				022929FE7F27F286690E224A /* AuthManager.swift in Sources */,
 				59F5A4D7660B2C588A75D7D4 /* BulkMoveSheet.swift in Sources */,
 				ACF9ADA0B243201A329208E8 /* EditToteSheet.swift in Sources */,
+				5DA3A268B4169830B0FD7DB4 /* ForgotPasswordView.swift in Sources */,
 				CD96D8F0C8FA138F64D2C208 /* InboxView.swift in Sources */,
 				00C12B090B3D88857BC355C1 /* Item.swift in Sources */,
 				F1DB9F179ACA8A66CFDECC47 /* ItemDetailSheet.swift in Sources */,
@@ -340,7 +346,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4E2Y3L2X79;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Storetrak/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -484,7 +490,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
 				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = 4E2Y3L2X79;
+				DEVELOPMENT_TEAM = "";
 				INFOPLIST_FILE = Storetrak/Info.plist;
 				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
 				LD_RUNPATH_SEARCH_PATHS = (

@@ -7,6 +7,7 @@ struct LoginView: View {
     @State private var isRegister = false
     @State private var errorMsg = ""
     @State private var isLoading = false
+    @State private var showForgotPassword = false
 
     var body: some View {
         ZStack {
@@ -64,6 +65,17 @@ struct LoginView: View {
                     }
                     .padding(.bottom, 16)
 
+                    if !isRegister {
+                        HStack {
+                            Spacer()
+                            Button("Forgot password?") { showForgotPassword = true }
+                                .font(.system(size: 11))
+                                .foregroundColor(.textMuted)
+                        }
+                        .padding(.top, -4)
+                        .padding(.bottom, 8)
+                    }
+
                     Button(action: { Task { await submit() } }) {
                         if isLoading {
                             ProgressView().tint(.black).frame(maxWidth: .infinity, minHeight: 42)
@@ -110,6 +122,9 @@ struct LoginView: View {
             }
         }
         .toast($appState.toast)
+        .sheet(isPresented: $showForgotPassword) {
+            ForgotPasswordView()
+        }
     }
 
     func submit() async {

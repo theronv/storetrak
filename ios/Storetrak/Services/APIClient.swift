@@ -73,4 +73,19 @@ struct APIClient {
         let res: AuthResponse = try await request("POST", path: "auth/register", body: Creds(email: email, password: password))
         return res.token
     }
+
+    static func forgotPassword(email: String) async throws {
+        struct Body: Encodable { let email: String }
+        let _: [String: String] = try await request("POST", path: "auth/forgot-password", body: Body(email: email))
+    }
+
+    static func resetPassword(email: String, token: String, password: String) async throws {
+        struct Body: Encodable { let email, token, password: String }
+        let _: [String: String] = try await request("POST", path: "auth/reset-password", body: Body(email: email, token: token, password: password))
+    }
+
+    static func changePassword(currentPassword: String, newPassword: String) async throws {
+        struct Body: Encodable { let currentPassword, newPassword: String }
+        let _: [String: String] = try await request("POST", path: "auth/change-password", body: Body(currentPassword: currentPassword, newPassword: newPassword))
+    }
 }

@@ -144,6 +144,7 @@ struct ToteCard: View {
     let onOpenItem: (Item) -> Void
     let onMoveItem: (String) -> Void
 
+    @State private var isExpanded = false
     @State private var newItemName = ""
     @State private var newItemCat = "other"
     @FocusState private var inputFocused: Bool
@@ -153,7 +154,7 @@ struct ToteCard: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Header
+            // Header — tap to expand/collapse
             HStack(spacing: 8) {
                 ToteBadge(id: tote.id)
                 Text(tote.displayName)
@@ -169,10 +170,17 @@ struct ToteCard: View {
                         .font(.system(size: 15))
                         .foregroundColor(.textMuted)
                 }
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.textDim)
+                    .rotationEffect(.degrees(isExpanded ? 90 : 0))
+                    .animation(.easeInOut(duration: 0.2), value: isExpanded)
             }
             .padding(.horizontal, 13)
             .padding(.vertical, 11)
             .background(Color.surface2)
+            .contentShape(Rectangle())
+            .onTapGesture { withAnimation(.easeInOut(duration: 0.2)) { isExpanded.toggle() } }
 
             Divider().background(Color.border)
 
@@ -187,51 +195,53 @@ struct ToteCard: View {
             .padding(.vertical, 5)
             .background(Color.surface2)
 
-            Divider().background(Color.border)
+            if isExpanded {
+                Divider().background(Color.border)
 
-            // Items
-            if toteItems.isEmpty {
-                Text("EMPTY — add items below")
-                    .font(.system(size: 12, design: .monospaced))
-                    .foregroundColor(.textDim)
-                    .padding(.vertical, 16)
-                    .frame(maxWidth: .infinity)
-            } else {
-                FlowLayout(spacing: 5) {
-                    ForEach(toteItems) { item in
-                        ItemChip(item: item, onTap: { onOpenItem(item) }, onMove: { onMoveItem(item.id) })
+                // Items
+                if toteItems.isEmpty {
+                    Text("EMPTY — add items below")
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundColor(.textDim)
+                        .padding(.vertical, 16)
+                        .frame(maxWidth: .infinity)
+                } else {
+                    FlowLayout(spacing: 5) {
+                        ForEach(toteItems) { item in
+                            ItemChip(item: item, onTap: { onOpenItem(item) }, onMove: { onMoveItem(item.id) })
+                        }
                     }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 10)
                 }
-                .padding(.horizontal, 12)
-                .padding(.vertical, 10)
+
+                Divider().background(Color.border)
+
+                // Add row
+                HStack(spacing: 6) {
+                    TextField("Add item...", text: $newItemName)
+                        .font(.system(size: 14))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 8)
+                        .background(Color.bg)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.border, lineWidth: 1))
+                        .cornerRadius(6)
+                        .focused($inputFocused)
+                        .submitLabel(.done)
+                        .onSubmit { Task { await addItem() } }
+
+                    CategoryPickerButton(selection: $newItemCat)
+
+                    Button("ADD") { Task { await addItem() } }
+                        .font(.system(size: 11, weight: .bold)).tracking(1)
+                        .padding(.horizontal, 10).padding(.vertical, 6)
+                        .background(Color.accent)
+                        .foregroundColor(.black)
+                        .cornerRadius(5)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
             }
-
-            Divider().background(Color.border)
-
-            // Add row
-            HStack(spacing: 6) {
-                TextField("Add item...", text: $newItemName)
-                    .font(.system(size: 14))
-                    .padding(.horizontal, 10)
-                    .padding(.vertical, 8)
-                    .background(Color.bg)
-                    .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.border, lineWidth: 1))
-                    .cornerRadius(6)
-                    .focused($inputFocused)
-                    .submitLabel(.done)
-                    .onSubmit { Task { await addItem() } }
-
-                CategoryPickerButton(selection: $newItemCat)
-
-                Button("ADD") { Task { await addItem() } }
-                    .font(.system(size: 11, weight: .bold)).tracking(1)
-                    .padding(.horizontal, 10).padding(.vertical, 6)
-                    .background(Color.accent)
-                    .foregroundColor(.black)
-                    .cornerRadius(5)
-            }
-            .padding(.horizontal, 10)
-            .padding(.vertical, 8)
         }
         .background(Color.surface)
         .overlay(RoundedRectangle(cornerRadius: 10).stroke(Color.border, lineWidth: 1))
