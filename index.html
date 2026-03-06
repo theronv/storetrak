@@ -226,6 +226,7 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
   <div style="display:flex;gap:8px">
     <button onclick="clearSelection()">CANCEL</button>
     <button onclick="openBulkMove()">MOVE TO TOTE →</button>
+    <button onclick="bulkDelete()" style="padding:6px 10px" title="Delete selected">🗑</button>
   </div>
 </div>
 
@@ -731,6 +732,26 @@ async function confirmBulkMove() {
     toast('Move failed - check console', 'error');
   }
   btn.disabled=false;
+}
+
+async function bulkDelete() {
+  if(!selectedInboxIds.size) return;
+  const n=selectedInboxIds.size;
+  if(!confirm(`Delete ${n} item${n>1?'s':''}? This cannot be undone.`)) return;
+  const ids=[...selectedInboxIds];
+  setStatus('loading');
+  try {
+    await Promise.all(ids.map(id=>api('DELETE',`items/${id}`)));
+    ids.forEach(id=>{ const idx=items.findIndex(i=>i.id===id); if(idx>-1) items.splice(idx,1); });
+    selectedInboxIds.clear();
+    renderAll();
+    updateBulkBar();
+    setStatus('ok');
+    toast(`${n} item${n>1?'s':''} deleted`,'success');
+  } catch(e) {
+    setStatus('error');
+    toast('Delete failed','error');
+  }
 }
 
 // ── ITEM DETAIL ──
