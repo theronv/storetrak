@@ -78,6 +78,18 @@ class AppState: ObservableObject {
         }
     }
 
+    func deleteItems(_ ids: Set<String>) async {
+        await withTaskGroup(of: Void.self) { group in
+            for id in ids {
+                group.addTask {
+                    try? await APIClient.send("DELETE", path: "items/\(id)")
+                }
+            }
+        }
+        items.removeAll { ids.contains($0.id) }
+        showToast("Deleted \(ids.count) item\(ids.count == 1 ? "" : "s")", type: .success)
+    }
+
     func moveItems(_ ids: [String], to toteId: String?) async {
         struct Body: Encodable { let ids: [String]; let tote_id: String? }
         do {

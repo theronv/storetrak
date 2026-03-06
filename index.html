@@ -192,6 +192,10 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
 .login-toggle{text-align:center;margin-top:14px;font-size:12px;color:var(--text-muted)}
 .login-toggle a{color:var(--accent);cursor:pointer;text-decoration:none}
 .login-toggle a:hover{text-decoration:underline}
+.login-forgot{text-align:right;margin-top:-6px;margin-bottom:12px;font-size:11px}
+.login-forgot a{color:var(--text-muted);cursor:pointer;text-decoration:none}
+.login-forgot a:hover{color:var(--accent)}
+.login-success{background:rgba(76,175,120,.12);border:1px solid rgba(76,175,120,.3);color:#4caf78;border-radius:7px;padding:9px 12px;font-size:13px;margin-bottom:12px;display:none;text-align:center}
 .logout-btn{background:none;border:none;color:var(--text-muted);font-family:'Space Mono',monospace;font-size:9px;cursor:pointer;padding:4px 6px;letter-spacing:1px;text-transform:uppercase}
 .logout-btn:hover{color:var(--red)}
 </style>
@@ -415,12 +419,37 @@ mark{background:rgba(240,165,0,.3);color:inherit;border-radius:2px;padding:0 1px
     <div class="login-logo">STRTRAK</div>
     <div class="login-title" id="loginTitle">Sign In</div>
     <div class="login-err" id="loginErr"></div>
-    <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" autocorrect="off" autocapitalize="none"></div>
-    <div class="field"><label>Password</label><input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"></div>
-    <div class="sheet-btns" style="margin-top:8px">
-      <button class="btn btn-primary" id="loginSubmitBtn" onclick="submitAuth()" style="flex:1">Sign In</button>
+    <div class="login-success" id="loginSuccess"></div>
+
+    <!-- Login / Register panel -->
+    <div id="loginPanel">
+      <div class="field"><label>Email</label><input id="loginEmail" type="email" placeholder="you@example.com" autocomplete="email" autocorrect="off" autocapitalize="none"></div>
+      <div class="field"><label>Password</label><input id="loginPassword" type="password" placeholder="••••••••" autocomplete="current-password"></div>
+      <div class="login-forgot" id="loginForgotLink"><a onclick="showAuthMode('forgot')">Forgot password?</a></div>
+      <div class="sheet-btns" style="margin-top:8px">
+        <button class="btn btn-primary" id="loginSubmitBtn" onclick="submitAuth()" style="flex:1">Sign In</button>
+      </div>
+      <div class="login-toggle"><span id="loginToggleText">Don't have an account?</span> <a onclick="toggleAuthMode()" id="loginToggleLink">Register</a></div>
     </div>
-    <div class="login-toggle"><span id="loginToggleText">Don't have an account?</span> <a onclick="toggleAuthMode()" id="loginToggleLink">Register</a></div>
+
+    <!-- Forgot Password panel -->
+    <div id="forgotPanel" style="display:none">
+      <div class="field"><label>Email</label><input id="forgotEmail" type="email" placeholder="you@example.com" autocomplete="email" autocorrect="off" autocapitalize="none"></div>
+      <div class="sheet-btns" style="margin-top:8px">
+        <button class="btn btn-primary" id="forgotSubmitBtn" onclick="submitForgot()" style="flex:1">Send Reset Code</button>
+      </div>
+      <div class="login-toggle"><a onclick="showAuthMode('login')">← Back to Sign In</a></div>
+    </div>
+
+    <!-- Reset Password panel -->
+    <div id="resetPanel" style="display:none">
+      <div class="field"><label>Reset Code</label><input id="resetToken" type="text" placeholder="e.g. A3F9B2C1" autocorrect="off" autocapitalize="characters" style="letter-spacing:2px"></div>
+      <div class="field"><label>New Password</label><input id="resetPassword" type="password" placeholder="Min 8 characters" autocomplete="new-password"></div>
+      <div class="sheet-btns" style="margin-top:8px">
+        <button class="btn btn-primary" id="resetSubmitBtn" onclick="submitReset()" style="flex:1">Reset Password</button>
+      </div>
+      <div class="login-toggle"><a onclick="showAuthMode('forgot')">← Resend Code</a></div>
+    </div>
   </div>
 </div>
 
@@ -457,7 +486,8 @@ async function api(method, path, body) {
 }
 
 // ── AUTH ──
-let authMode = 'login'; // 'login' | 'register'
+let authMode = 'login'; // 'login' | 'register' | 'forgot' | 'reset'
+let forgotEmail = ''; // retained for reset step
 
 function showLogin() {
   document.getElementById('loginOverlay').classList.add('open');
@@ -467,17 +497,39 @@ function hideLogin() {
   document.getElementById('loginOverlay').classList.remove('open');
   document.getElementById('logoutBtn').style.display = '';
   document.getElementById('loginErr').style.display = 'none';
+  document.getElementById('loginSuccess').style.display = 'none';
   document.getElementById('loginEmail').value = '';
   document.getElementById('loginPassword').value = '';
+  showAuthMode('login');
+}
+function showAuthMode(mode) {
+  authMode = mode;
+  const errEl = document.getElementById('loginErr');
+  const sucEl = document.getElementById('loginSuccess');
+  errEl.style.display = 'none';
+  sucEl.style.display = 'none';
+
+  const panels = { login: 'loginPanel', forgot: 'forgotPanel', reset: 'resetPanel' };
+  Object.values(panels).forEach(id => document.getElementById(id).style.display = 'none');
+
+  if (mode === 'login' || mode === 'register') {
+    document.getElementById('loginPanel').style.display = '';
+    const isReg = mode === 'register';
+    document.getElementById('loginTitle').textContent = isReg ? 'Create Account' : 'Sign In';
+    document.getElementById('loginSubmitBtn').textContent = isReg ? 'Register' : 'Sign In';
+    document.getElementById('loginToggleText').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
+    document.getElementById('loginToggleLink').textContent = isReg ? 'Sign In' : 'Register';
+    document.getElementById('loginForgotLink').style.display = isReg ? 'none' : '';
+  } else if (mode === 'forgot') {
+    document.getElementById('forgotPanel').style.display = '';
+    document.getElementById('loginTitle').textContent = 'Reset Password';
+  } else if (mode === 'reset') {
+    document.getElementById('resetPanel').style.display = '';
+    document.getElementById('loginTitle').textContent = 'Enter Reset Code';
+  }
 }
 function toggleAuthMode() {
-  authMode = authMode === 'login' ? 'register' : 'login';
-  const isReg = authMode === 'register';
-  document.getElementById('loginTitle').textContent = isReg ? 'Create Account' : 'Sign In';
-  document.getElementById('loginSubmitBtn').textContent = isReg ? 'Register' : 'Sign In';
-  document.getElementById('loginToggleText').textContent = isReg ? 'Already have an account?' : "Don't have an account?";
-  document.getElementById('loginToggleLink').textContent = isReg ? 'Sign In' : 'Register';
-  document.getElementById('loginErr').style.display = 'none';
+  showAuthMode(authMode === 'login' ? 'register' : 'login');
 }
 async function submitAuth() {
   const btn = document.getElementById('loginSubmitBtn');
@@ -505,6 +557,70 @@ async function submitAuth() {
   } finally {
     btn.disabled = false;
     btn.textContent = authMode === 'register' ? 'Register' : 'Sign In';
+  }
+}
+async function submitForgot() {
+  const btn = document.getElementById('forgotSubmitBtn');
+  const email = document.getElementById('forgotEmail').value.trim();
+  const errEl = document.getElementById('loginErr');
+  const sucEl = document.getElementById('loginSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!email) { errEl.textContent = 'Email required'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email}),
+    });
+    forgotEmail = email;
+    sucEl.textContent = 'If that email exists, a reset code was sent. Check your inbox.';
+    sucEl.style.display = 'block';
+    setTimeout(() => showAuthMode('reset'), 1800);
+  } catch(e) {
+    errEl.textContent = 'Network error. Try again.'; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Send Reset Code';
+  }
+}
+async function submitReset() {
+  const btn = document.getElementById('resetSubmitBtn');
+  const token = document.getElementById('resetToken').value.trim();
+  const password = document.getElementById('resetPassword').value;
+  const errEl = document.getElementById('loginErr');
+  const sucEl = document.getElementById('loginSuccess');
+  errEl.style.display = 'none'; sucEl.style.display = 'none';
+  if (!token || !password) { errEl.textContent = 'Code and new password required'; errEl.style.display = 'block'; return; }
+  btn.disabled = true; btn.textContent = '...';
+  try {
+    const r = await fetch(`${API_BASE}/auth/reset-password`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email: forgotEmail, token, password}),
+    });
+    const data = await r.json();
+    if (!r.ok) { errEl.textContent = data.error || 'Reset failed'; errEl.style.display = 'block'; return; }
+    sucEl.textContent = 'Password reset! Signing you in…';
+    sucEl.style.display = 'block';
+    // Auto sign-in with new password
+    const lr = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({email: forgotEmail, password}),
+    });
+    const ldata = await lr.json();
+    if (lr.ok) {
+      authToken = ldata.token;
+      localStorage.setItem('st_token', authToken);
+      hideLogin();
+      await loadAll();
+    } else {
+      showAuthMode('login');
+    }
+  } catch(e) {
+    errEl.textContent = 'Network error. Try again.'; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; btn.textContent = 'Reset Password';
   }
 }
 function logout() {
@@ -554,7 +670,7 @@ async function addInboxItem() {
   try {
     const item=await api('POST','items',{tote_id:null,name,category:cat,qty:1});
     if(!item) return;
-    items.push(item); inp.value=''; inp.focus(); renderAll(); toast('Added to inbox','success');
+    items.push(item); inp.value=''; renderAll(); toast('Added to inbox','success'); inp.focus();
   } catch(e){toast('Error adding item','error');}
 }
 
@@ -1005,6 +1121,8 @@ document.getElementById('roomCodeInput').addEventListener('keydown',e=>{if(e.key
 document.getElementById('inboxInput').addEventListener('keydown',e=>{if(e.key==='Enter')addInboxItem();});
 document.getElementById('loginEmail').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('loginPassword').focus();});
 document.getElementById('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')submitAuth();});
+document.getElementById('forgotEmail').addEventListener('keydown',e=>{if(e.key==='Enter')submitForgot();});
+document.getElementById('resetPassword').addEventListener('keydown',e=>{if(e.key==='Enter')submitReset();});
 
 loadAll();
 </script>

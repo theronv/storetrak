@@ -6,3 +6,5 @@ compatibility_date = "2024-01-01"
 # Secrets are set via: wrangler secret put JWT_SECRET
 # wrangler secret put TURSO_URL
 # wrangler secret put TURSO_AUTH_TOKEN
+# wrangler secret put RESEND_API_KEY
+# Optional: wrangler secret put RESEND_FROM  (default: "Storetrak <noreply@storetrak.app>")

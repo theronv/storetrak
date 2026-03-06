@@ -9,7 +9,7 @@ import itemRoutes from './routes/items';
 const app = new Hono<{ Bindings: Env }>();
 
 app.use('*', cors({
-  origin: ['https://storetrak.pages.dev', 'http://localhost:3000', 'http://localhost:8080'],
+  origin: ['https://storetrak.pages.dev', 'https://theronv.github.io', 'http://localhost:3000', 'http://localhost:8080'],
   allowHeaders: ['Content-Type', 'Authorization'],
   allowMethods: ['GET', 'POST', 'PATCH', 'DELETE', 'OPTIONS'],
 }));

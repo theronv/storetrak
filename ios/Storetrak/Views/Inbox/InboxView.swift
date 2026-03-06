@@ -6,8 +6,10 @@ struct InboxView: View {
     @State private var newItemName = ""
     @State private var newItemCategory = "other"
     @State private var showBulkMove = false
+    @State private var showBulkDeleteConfirm = false
     @State private var showMoveSheet: String? = nil   // item id
     @State private var selectedItem: Item? = nil
+    @FocusState private var inputFocused: Bool
 
     var body: some View {
         NavigationStack {
@@ -29,6 +31,13 @@ struct InboxView: View {
                                 .padding(.horizontal, 12).padding(.vertical, 6)
                                 .background(Color.black.opacity(0.15))
                                 .cornerRadius(6)
+                            Button(action: { showBulkDeleteConfirm = true }) {
+                                Image(systemName: "trash")
+                                    .font(.system(size: 15, weight: .bold))
+                            }
+                            .padding(.horizontal, 12).padding(.vertical, 6)
+                            .background(Color.black.opacity(0.25))
+                            .cornerRadius(6)
                         }
                         .font(.system(size: 13, weight: .bold))
                         .padding(.horizontal, 16)
@@ -47,6 +56,7 @@ struct InboxView: View {
                                     .overlay(RoundedRectangle(cornerRadius: 7).stroke(Color.border, lineWidth: 1))
                                     .cornerRadius(7)
                                     .submitLabel(.done)
+                                    .focused($inputFocused)
                                     .onSubmit { Task { await addItem() } }
 
                                 CategoryPickerButton(selection: $newItemCategory)
@@ -141,6 +151,18 @@ struct InboxView: View {
             BulkMoveSheet(isPresented: $showBulkMove)
                 .environmentObject(appState)
         }
+        .confirmationDialog(
+            "Delete \(appState.selectedInboxIds.count) item\(appState.selectedInboxIds.count == 1 ? "" : "s")?",
+            isPresented: $showBulkDeleteConfirm,
+            titleVisibility: .visible
+        ) {
+            Button("Delete", role: .destructive) {
+                let ids = appState.selectedInboxIds
+                appState.selectedInboxIds.removeAll()
+                Task { await appState.deleteItems(ids) }
+            }
+            Button("Cancel", role: .cancel) {}
+        }
     }
 
     func toggleSelect(_ id: String) {
@@ -158,6 +180,7 @@ struct InboxView: View {
         guard !name.isEmpty else { return }
         newItemName = ""
         await appState.addItem(name: name, category: newItemCategory, toteId: nil)
+        inputFocused = true
     }
 }
 

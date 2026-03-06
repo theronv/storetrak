@@ -2,6 +2,8 @@ export interface Env {
   JWT_SECRET: string;
   TURSO_URL: string;
   TURSO_AUTH_TOKEN: string;
+  RESEND_API_KEY: string;
+  RESEND_FROM?: string; // e.g. "Storetrak <noreply@yourdomain.com>"
 }
 
 export interface User {
